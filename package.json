@@ -1,0 +1,21 @@
+{
+  "name": "gossamercms-fastify",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Gossamer CMS on Fastify with PostgreSQL and MySQL persistence",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "fastify": "^5.12.7",
+    "gossamercms-annotations": "file:libs/gossamercms-annotations",
+    "mysql2": "^3.24.6",
+    "pg": "^8.23.1"
+  }
+}

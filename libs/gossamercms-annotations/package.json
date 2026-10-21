@@ -1,0 +1,20 @@
+{
+  "name": "gossamercms-annotations",
+  "version": "0.1.0",
+  "description": "Lightweight metadata and DTO helpers for GossamerCMS Node.js projects",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./metadata": "./src/metadata.js",
+    "./decorators": "./src/decorators.js",
+    "./dto": "./src/dto.js"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT"
+}

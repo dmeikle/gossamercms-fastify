@@ -1,0 +1,29 @@
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: gossamer
+      MYSQL_USER: gossamer
+      MYSQL_PASSWORD: gossamer
+      MYSQL_DATABASE: gossamercms
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD-SHELL", "mysqladmin ping -h localhost -u gossamer -pgossamer" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  test:
+    build:
+      context: .
+      target: dev
+    environment:
+      NODE_ENV: test
+      DATABASE_URL: postgres://gossamer:gossamer@postgres:5432/gossamercms_test
+    command: npm test
+    depends_on:
+      postgres:
+        condition: service_healthy
