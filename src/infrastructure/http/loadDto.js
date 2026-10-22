@@ -1,35 +1,20 @@
-/**
- * Creates a Fastify preHandler that loads a DTO by a path parameter.
- *
- * @param {object} options
- * @param {string} options.param - Path parameter name
- * @param {object} options.data - Data service
- * @param {string} [options.property] - Request property to populate
- */
-export function loadDto({
-                            param,
-                            data,
-                            property = 'loadedDto',
-                        }) {
-    return async function dtoPreHandler(request, reply) {
-        const id = request.params[param];
+import { isUuidString } from '#mvc/util/uuid.js';
+import { ApiException } from '#mvc/exceptions/ApiException.js';
+import { NotFoundException } from '#mvc/exceptions/NotFoundException.js';
 
-        if (!id) {
-            return reply.code(400).send({
-                error: 'Bad Request',
-                message: `Missing path parameter: ${param}`,
-            });
-        }
+export async function loadDto({ id, data, parameterName }) {
+    if (!isUuidString(id)) {
+        throw new ApiException(
+            `Invalid UUID for ${parameterName}`,
+            400,
+        );
+    }
 
-        const dto = await data.findById(id);
+    const dto = await data.getById(id);
 
-        if (!dto) {
-            return reply.code(404).send({
-                error: 'Not Found',
-                message: `${param} was not found`,
-            });
-        }
+    if (dto == null) {
+        throw new NotFoundException(`${parameterName} was not found`);
+    }
 
-        request[property] = dto;
-    };
+    return dto;
 }

@@ -1,39 +1,43 @@
 import { BaseController } from '#mvc/controllers/BaseController.js';
-import User from '../models/user.js';
 import {ApiResponse} from "#mvc/http/ApiResponse.js";
 
+/**
+ * UsersController is responsible for handling HTTP requests related to users
+ */
 export class UsersController extends BaseController {
-    static routes = [
-        {
-            method: 'GET',
-            path: '/hello',
-            action: 'hello',
-            parameters: [],
-        },
-        {
-            method: 'GET',
-            path: '/:user/detailed',
-            action: 'getDetailed',
-            parameters: [
-                {
-                    type: 'dto',
-                    name: 'user',
-                    model: User,
-                },
-            ],
-        },
-    ];
+
 
     constructor({ usersHandler }) {
         super(usersHandler);
     }
 
+    /**
+     * simple hello world endpoint
+     * @returns {Promise<string>}
+     */
     async hello() {
         return 'Hello from public endpoint';
     }
 
+    /**
+     * get all user details
+     *
+     * @param user
+     * @returns {Promise<ApiResponse>}
+     */
     async getDetailed(user) {
         return ApiResponse.ok(user);//this.handler.getDetailed(user);
+    }
+
+    /**
+     * test endpoint for making sure converters are working independently
+     *
+     * @param user
+     * @param userContext
+     * @returns {Promise<ApiResponse>}
+     */
+    async getContext(user, userContext) {
+        return ApiResponse.ok({user: user, userContext: userContext });
     }
 }
 

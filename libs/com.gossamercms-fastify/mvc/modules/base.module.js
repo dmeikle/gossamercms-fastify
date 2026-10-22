@@ -7,7 +7,11 @@ export function createModule(controllers) {
 
             fastify.register(async function controllerScope(scope) {
                 const controller = container.resolve(name);
-                await controller.register(scope, routes);
+                await controller.register(
+                    scope,
+                    routes,
+                    container.resolve('dtoConverters'),
+                );
             }, { prefix });
         }
     };

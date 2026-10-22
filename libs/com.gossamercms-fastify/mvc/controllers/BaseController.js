@@ -104,27 +104,7 @@ export class BaseController {
 
       case 'dto': {
         const pathParam = parameter.pathParam ?? parameter.name;
-        const id = request.params[pathParam];
-
-        if (id == null || id === '') {
-          const error = new IllegalArgumentException(
-              `Missing path parameter: ${pathParam}`,
-          );
-          error.statusCode = 400;
-          throw error;
-        }
-
-        const dto = await this.resolvePathDto(id);
-
-        if (dto == null) {
-          const error = new IllegalArgumentException(
-              `${parameter.model?.name ?? parameter.name} not found`,
-          );
-          error.statusCode = 404;
-          throw error;
-        }
-
-        return dto;
+        return parameter.converter.convert(request.params[pathParam]);
       }
 
       default:
@@ -134,7 +114,7 @@ export class BaseController {
     }
   }
 
-  async register(fastify, routes) {
+  async register(fastify, routes, dtoConverters) {
     for (const route of routes) {
       const action = this[route.action];
 
@@ -143,6 +123,22 @@ export class BaseController {
             `Route action "${route.action}" not found on ${this.constructor.name}`,
         );
       }
+      const parameters = (route.parameters ?? defaultParameters()).map(
+          (parameter) => {
+            if (parameter.type !== 'dto') return parameter;
+
+            const converter = dtoConverters.get(parameter.dto);
+
+            if (!converter) {
+              throw new Error(
+                  `No converter registered for DTO parameter `
+                  + `"${parameter.name}" on ${route.method} ${route.path}`,
+              );
+            }
+
+            return { ...parameter, converter };
+          },
+      );
 
       fastify.route({
         method: route.method,
@@ -150,7 +146,7 @@ export class BaseController {
         ...(route.schema ? { schema: route.schema } : {}),
         ...(route.config ? { config: route.config } : {}),
         handler: async (request, reply) => {
-          const parameters = route.parameters ?? defaultParameters();
+
           const args = [];
 
           for (const parameter of parameters) {

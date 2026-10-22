@@ -29,6 +29,7 @@ export async function buildContainer({ db }) {
         'modules/**/data/*.service.js',
         'modules/**/handlers/*.handler.js',
         'modules/**/controllers/*.controller.js',
+        'modules/**/converters/*.converter.js',
     ], {
         cwd: projectRoot,
         esModules: true,
@@ -36,6 +37,31 @@ export async function buildContainer({ db }) {
         resolverOptions: {
             lifetime: Lifetime.SINGLETON,
         },
+    });
+    const dtoConverters = new Map();
+
+    for (const name of Object.keys(container.registrations)) {
+        if (!name.endsWith('Converter')) continue;
+
+        const converter = container.resolve(name);
+        const Dto = converter.constructor.dto;
+
+        if (typeof Dto !== 'function'
+            || typeof converter.convert !== 'function') {
+            throw new TypeError(
+                `${name} must define static dto and convert(source)`,
+            );
+        }
+
+        if (dtoConverters.has(Dto)) {
+            throw new Error(`Duplicate converter for ${Dto.name}`);
+        }
+
+        dtoConverters.set(Dto, converter);
+    }
+
+    container.register({
+        dtoConverters: asValue(dtoConverters),
     });
 
     return container;
