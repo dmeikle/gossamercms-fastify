@@ -15,9 +15,11 @@
 
 import { buildApp } from './app.js';
 import { createDatabase } from './infrastructure/database/index.js';
+import {buildContainer} from "./container.js";
 
 const db = await createDatabase();
-const fastify = await buildApp({ db });
+const container = await buildContainer({ db });
+const fastify = await buildApp({ container });
 
 try {
   await fastify.listen({

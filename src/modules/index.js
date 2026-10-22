@@ -1,9 +1,9 @@
 // src/index/index.js
 
-import { usersModule } from '../../apps/src/gossamercms-users/com/gossamercms/users/users.module.js';
+import { usersModule } from '../../modules/users/users.module.js';
 
 
-export const index = [
+export const modules = [
     {
         name: 'users',
         prefix: '/users',

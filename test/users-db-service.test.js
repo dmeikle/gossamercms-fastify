@@ -1,16 +1,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { UsersDbService } from '../apps/src/gossamercms-users/com/gossamercms/users/data/users.db.service.js';
-import { UserDto } from '../apps/src/gossamercms-users/com/gossamercms/users/dtos/user.dto.js';
-import { User } from '../apps/src/gossamercms-users/com/gossamercms/users/models/user.js';
-import { UserDirectoryDto } from '../apps/src/gossamercms-users/com/gossamercms/users/dtos/user-directory.dto.js';
-import { UserDetailDto } from '../apps/src/gossamercms-users/com/gossamercms/users/dtos/user-detail.dto.js';
-import { PrivacyMaskUtils } from '../apps/src/gossamercms-users/com/gossamercms/users/util/privacy-mask.js';
-import { BaseDbService } from '../libs/com.gossamercms-fastify/mvc/data/BaseDbService.js';
-import { DataSourceManager } from '../libs/com.gossamercms-fastify/mvc/data/DataSourceManager.js';
-import { PostgresAdapter } from '../libs/com.gossamercms-fastify/mvc/adapters/postgresql/PostgresAdapter.js';
-import { QueryOptions } from '../libs/com.gossamercms-fastify/mvc/data/QueryOptions.js';
-import { IncorrectResultSizeDataAccessException } from '../libs/com.gossamercms-fastify/mvc/util/exceptions.js';
+import { UsersDbService } from '../modules/users/data/users.db.service.js';
+import { UserDto } from '../modules/users/dtos/user.dto.js';
+import { User } from '../modules/users/models/user.js';
+import { UserDirectoryDto } from '../modules/users/dtos/user-directory.dto.js';
+import { UserDetailDto } from '../modules/users/dtos/user-detail.dto.js';
+import { PrivacyMaskUtils } from '../modules/users/util/privacy-mask.js';
+import { BaseDbService } from '#mvc/data/BaseDbService.js';
+import { DataSourceManager } from '#mvc/data/DataSourceManager.js';
+import { PostgresAdapter } from '#mvc/adapters/postgresql/PostgresAdapter.js';
+import { QueryOptions } from '#mvc/data/QueryOptions.js';
+import { IncorrectResultSizeDataAccessException } from '#mvc/util/exceptions.js';
 
 function createService(adapter) {
   const manager = new DataSourceManager();

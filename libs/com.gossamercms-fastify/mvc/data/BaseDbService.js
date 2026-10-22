@@ -93,8 +93,15 @@ export class BaseDbService {
     return mapRowToDto(entity, this.dtoClass);
   }
 
-  removeExcludedFields(_dto) {
-    throw new Error(`${this.constructor.name} must implement removeExcludedFields(dto)`);
+  /**
+   * this method is called after mapping a row to a DTO, and can be
+   * overridden to remove fields that should not be returned to the caller.
+   *
+   * @param dto
+   * @returns {*}
+   */
+  removeExcludedFields(dto) {
+    return dto;
   }
 
   buildBatchUpdateSql(meta) {
@@ -292,11 +299,11 @@ export class BaseDbService {
       for (const [key, value] of entriesOf(deleteExistingKey)) params[key] = value;
       params.deletedBy = createdBy;
       const sql = `UPDATE "${this.meta.table()}"
-SET "deletedAt" = now(),
-    "deletedBy" = :deletedBy
-WHERE ${where}
-AND "deletedAt" IS NULL
-`;
+      SET "deletedAt" = now(),
+          "deletedBy" = :deletedBy
+      WHERE ${where}
+      AND "deletedAt" IS NULL
+      `;
       await ds.executeSql(sql, params);
     }
 

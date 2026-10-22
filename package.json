@@ -7,14 +7,26 @@
   "engines": {
     "node": ">=22"
   },
+  "imports": {
+    "#mvc/*": "./libs/com.gossamercms-fastify/mvc/*"
+  },
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "node --watch src/server.js",
-    "test": "node --test"
+    "start": "node --env-file=.env src/server.js",
+    "dev": "node --env-file=.env --watch src/server.js",
+    "test": "node --test",
+    "lint": "eslint . --ext .js,.ts",
+    "db:migrate:make": "node src/infrastructure/database/migrations/migrate.js make",
+    "db:migrate": "node src/infrastructure/database/migrations/migrate.js latest",
+    "db:rollback": "node src/infrastructure/database/migrations/migrate.js rollback",
+    "db:migrate:status": "node src/infrastructure/database/migrations/migrate.js status"
   },
   "dependencies": {
+    "@fastify/autoload": "^6.5.1",
+    "awilix": "^13.0.5",
+    "dotenv": "^18.0.8",
     "fastify": "^5.12.7",
     "gossamercms-annotations": "file:libs/gossamercms-annotations",
+    "knex": "^3.3.0",
     "mysql2": "^3.24.6",
     "pg": "^8.23.1"
   }

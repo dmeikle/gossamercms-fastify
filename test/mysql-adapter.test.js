@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { MySqlAdapter } from '../libs/com.gossamercms-fastify/mvc/adapters/mysql/MySqlAdapter.js';
-import { Operator, QueryFilter } from '../libs/com.gossamercms-fastify/mvc/data/QueryFilter.js';
+import { MySqlAdapter } from '#mvc/adapters/mysql/MySqlAdapter.js';
+import { Operator, QueryFilter } from '#mvc/data/QueryFilter.js';
 
 function createDb(results = []) {
   const resultQueue = Array.isArray(results) ? results : [results];

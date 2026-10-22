@@ -35,10 +35,36 @@ function idOf(existing) {
   throw error;
 }
 
+const BASE_ROUTES = [
+  { method: 'GET', path: '/get', action: 'get' },
+  {
+    method: 'GET',
+    path: '/:id',
+    action: 'getById',
+    parameters: [{ type: 'request' }],
+  },
+  { method: 'GET', path: '/', action: 'getAll' },
+  { method: 'POST', path: '/bulk', action: 'createOrReplaceBulk' },
+  { method: 'POST', path: '/:id/restore', action: 'restore' },
+  { method: 'POST', path: '/', action: 'create' },
+  { method: 'PUT', path: '/update', action: 'update' },
+  { method: 'PUT', path: '/:id', action: 'updateById' },
+  { method: 'DELETE', path: '/:id', action: 'deleteById' },
+  { method: 'DELETE', path: '/', action: 'delete' },
+];
+
+
+function defaultParameters() {
+  return [{ type: 'request' }, { type: 'reply' }];
+}
+
 export class BaseController {
+
+
   constructor(handler) {
     this.handler = handler;
   }
+
 
   /**
    * Spring converts `/{id}` into a DTO before the method runs.
@@ -52,19 +78,108 @@ export class BaseController {
   currentUser(request) {
     return resolveCurrentJwtUser(request);
   }
+  // getRouteDefinitions() {
+  //   return [
+  //     ...BASE_ROUTES,
+  //     ...(this.constructor.routes ?? []),
+  //   ];
+  // }
 
-  async register(fastify) {
-    fastify.get('/get', (request, reply) => this.get(request, reply));
-    fastify.get('/:id', (request, reply) => this.getById(request, reply));
-    fastify.get('/', (request, reply) => this.getAll(request, reply));
-    fastify.post('/bulk', (request, reply) => this.createOrReplaceBulk(request, reply));
-    fastify.post('/:id/restore', (request, reply) => this.restore(request, reply));
-    fastify.post('/', (request, reply) => this.create(request, reply));
-    fastify.put('/update', (request, reply) => this.update(request, reply));
-    fastify.put('/:id', (request, reply) => this.updateById(request, reply));
-    fastify.delete('/:id', (request, reply) => this.deleteById(request, reply));
-    fastify.delete('/', (request, reply) => this.delete(request, reply));
+  async resolveRouteParameter(parameter, request, reply) {
+    switch (parameter.type) {
+      case 'request':
+        return request;
+
+      case 'reply':
+        return reply;
+
+      case 'path':
+        return request.params[parameter.name];
+
+      case 'query':
+        return request.query?.[parameter.name];
+
+      case 'body':
+        return request.body;
+
+      case 'dto': {
+        const pathParam = parameter.pathParam ?? parameter.name;
+        const id = request.params[pathParam];
+
+        if (id == null || id === '') {
+          const error = new IllegalArgumentException(
+              `Missing path parameter: ${pathParam}`,
+          );
+          error.statusCode = 400;
+          throw error;
+        }
+
+        const dto = await this.resolvePathDto(id);
+
+        if (dto == null) {
+          const error = new IllegalArgumentException(
+              `${parameter.model?.name ?? parameter.name} not found`,
+          );
+          error.statusCode = 404;
+          throw error;
+        }
+
+        return dto;
+      }
+
+      default:
+        throw new IllegalArgumentException(
+            `Unsupported route parameter type: ${parameter.type}`,
+        );
+    }
   }
+
+  async register(fastify, routes) {
+    for (const route of routes) {
+      const action = this[route.action];
+
+      if (typeof action !== 'function') {
+        throw new Error(
+            `Route action "${route.action}" not found on ${this.constructor.name}`,
+        );
+      }
+
+      fastify.route({
+        method: route.method,
+        url: route.path,
+        ...(route.schema ? { schema: route.schema } : {}),
+        ...(route.config ? { config: route.config } : {}),
+        handler: async (request, reply) => {
+          const parameters = route.parameters ?? defaultParameters();
+          const args = [];
+
+          for (const parameter of parameters) {
+            if (parameter.type === 'reply') {
+              args.push(reply);
+            } else {
+              args.push(
+                  await this.resolveRouteParameter(parameter, request, reply),
+              );
+            }
+          }
+
+          return action.apply(this, args);
+        },
+      });
+    }
+  }
+  // async register(fastify) {
+  //   fastify.get('/get', (request, reply) => this.get(request, reply));
+  //   fastify.get('/:id', (request, reply) => this.getById(request, reply));
+  //   fastify.get('/', (request, reply) => this.getAll(request, reply));
+  //   fastify.post('/bulk', (request, reply) => this.createOrReplaceBulk(request, reply));
+  //   fastify.post('/:id/restore', (request, reply) => this.restore(request, reply));
+  //   fastify.post('/', (request, reply) => this.create(request, reply));
+  //   fastify.put('/update', (request, reply) => this.update(request, reply));
+  //   fastify.put('/:id', (request, reply) => this.updateById(request, reply));
+  //   fastify.delete('/:id', (request, reply) => this.deleteById(request, reply));
+  //   fastify.delete('/', (request, reply) => this.delete(request, reply));
+  // }
 
   async getById(request) {
     const dto = await this.resolvePathDto(request.params.id);
@@ -158,8 +273,8 @@ export class BaseController {
   }
 }
 
-export function baseControllerPlugin(controller) {
-  return async function plugin(fastify) {
-    await controller.register(fastify);
-  };
-}
+// export function baseControllerPlugin(controller) {
+//   return async function plugin(fastify) {
+//     await controller.register(fastify);
+//   };
+// }
